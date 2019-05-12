@@ -4,6 +4,8 @@ import os
 import SpeechToText
 import re
 import random
+import tulin
+import requests
 
 from itchat.content import  PICTURE, VIDEO,MAP, CARD, SHARING, RECORDING
 
@@ -198,8 +200,29 @@ def xbAnswer(msg):
     else:
         if('http' in msg['Text']):
             dealLink(msg)
+        if("新闻" in msg['Text']):
+            news = tulin.askTuling(msg['Text'])
+            if(news != None):
+                itchat.send_msg(news['text'], toUserName=msg['FromUserName'])
+                itchat.send_msg(news['news']['name'], toUserName=msg['FromUserName'])
+                r = requests.get("http:" + news['news']['icon'])
+                with open("tmp.jpg", "wb") as f:
+                    f.write(r.content)
+                itchat.send_image("tmp.jpg", toUserName=msg['FromUserName'])
+                os.remove("tmp.jpg")
+                itchat.send_msg("链接 : " + news['news']['detailurl'], toUserName=msg['FromUserName'])
+            else:
+                itchat.send_msg(msg['Text'], toUserName=xb['UserName'])
+        elif ("图片" in msg['Text']):
+            pic = tulin.askTuling(msg['Text'])
+            if (pic != None):
+                itchat.send_msg(pic['text'], toUserName=msg['FromUserName'])
+                itchat.send_msg("链接 : " + pic['url'], toUserName=msg['FromUserName'])
+            else:
+                itchat.send_msg(msg['Text'], toUserName=xb['UserName'])
 
-        itchat.send_msg(msg['Text'], toUserName=xb['UserName'])
+        else:
+            itchat.send_msg(msg['Text'], toUserName=xb['UserName'])
 
 
 @itchat.msg_register([itchat.content.TEXT, PICTURE, VIDEO, MAP, CARD, SHARING, RECORDING], isMpChat=True)
